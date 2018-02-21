@@ -100,9 +100,15 @@ class PSR:
 ## False
 
 def n_reinas(n):
-    .....
-    doms=......
-    restr=.....
+    def n_reinas_restr(v,w):
+        return lambda x,y: (x!=y and abs(x-y)!=abs(v-w))
+
+    doms= {x:list(range(1,n+1)) for x in range(1,n+1)}
+    restr= {}
+
+    for v in ..... :
+        for w in ..... :
+            restr[(v,w)] = n_reinas_restr(v,w) 
 
 
     return PSR(doms,restr)
