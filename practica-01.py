@@ -238,7 +238,7 @@ def AC3(psr,doms):
 
 dominios = {1:[1,2,3,4],2:[3,4],3:[1,4],4:[1,2,3,4]}
 AC3(psr_n4, dominios)
-print(dominios)
+# print(dominios)
 
 ## ===================================================================
 ## Parte III: Algoritmo de backtracking con AC3 y MRV
@@ -278,9 +278,19 @@ print(dominios)
 ## >>> MRV([2, 3, 4], {1: [2], 2: [3, 4], 3: [2, 4], 4: [2, 3]})
 ## 2
 
+def MRV(pend,doms):
+    vars=[]
+    mindom=float("inf")
+    for var in pend:
+        tvar = len(doms[var])
+        if tvar < mindom:
+            vars = [var]
+            mindom = tvar
+        elif tvar == mindom:
+            vars.append(var)
+    return random.choice(vars)
 
-
-
+# print(MRV([2, 3, 4], {1: [2], 2: [4], 3: [1, 3], 4: [1, 3, 4]}))
 
 
 
