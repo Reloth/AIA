@@ -106,16 +106,16 @@ def n_reinas(n):
     doms= {x:list(range(1,n+1)) for x in range(1,n+1)}
     restr= {}
 
-    for v in ..... :
-        for w in ..... :
+    for v in range(1,n) :
+        for w in range(v+1,n+1) :
             restr[(v,w)] = n_reinas_restr(v,w) 
 
 
     return PSR(doms,restr)
 
-
-
-
+# psr_n4 = n_reinas(4)
+# print(psr_n4.variables)
+# print(psr_n4.restricciones[(1,4)](2,3))
 
 
 ## ===================================================================
