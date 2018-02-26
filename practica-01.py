@@ -113,7 +113,7 @@ def n_reinas(n):
 
     return PSR(doms,restr)
 
-# psr_n4 = n_reinas(4)
+psr_n4 = n_reinas(4)
 # print(psr_n4.variables)
 # print(psr_n4.restricciones[(1,4)](2,3))
 
@@ -152,7 +152,11 @@ def n_reinas(n):
 ## >>> restriccion_arco(psr_n4, 1, 2)(3, 2)
 ## False
 
-
+def restriccion_arco(psr,v1,v2):
+    if (v1,v2) in psr.restricciones:
+        return psr.restricciones[(v1,v2)]
+    else:
+        return lambda x,y : psr.restricciones[(v2,v1)](y,x)
 
 
 ## ===================================================================
@@ -171,9 +175,13 @@ def n_reinas(n):
 ## [(1, 2), (2, 1), (1, 3), (3, 1), (2, 3), (3, 2), (3, 4), (4, 3),
 ##  (2, 4), (4, 2), (1, 4), (4, 1)]
 
+def arcos(psr):
+    res=[]
+    for v,w in psr.restricciones:
+        res.extend([(v,w),(w,v)])
+    return res
 
-
-
+# print(arcos(psr_n4))
 
 
 
@@ -209,10 +217,28 @@ def n_reinas(n):
 ## >>> dominios
 ## {1: [2], 2: [4], 3: [1], 4: [3]}
 
+def AC3(psr,doms):
+    cola = set(arcos(psr))
+    while cola:
+        (v,w) = cola.pop()
+        f = restriccion_arco(psr,v,w)
+        dom_previo_v = doms[v]
+        dom_w = doms[w]
+        dom_nuevo_v = []
+        modificado = False
+        for x in dom_previo_v:
+            if any(f(x,y) for y in dom_w):
+                dom_nuevo_v.append(x)
+            else:
+                modificado = True
+        if modificado:
+            doms[v] = dom_nuevo_v
+            cola.update((z,v) for z in psr.vecinos[v])
+    return doms
 
-
-
-
+dominios = {1:[1,2,3,4],2:[3,4],3:[1,4],4:[1,2,3,4]}
+AC3(psr_n4, dominios)
+print(dominios)
 
 ## ===================================================================
 ## Parte III: Algoritmo de backtracking con AC3 y MRV
