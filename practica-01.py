@@ -309,9 +309,30 @@ def MRV(pend,doms):
 ## valores del dominio.
 
 def psr_backtracking_AC3_MRV(psr):
-    def dominio_vacio(doms):
-        any(dx for dx in doms.values())
 
+    def dominio_vacio(doms):
+        return any(dx==[] for dx in doms.values())
+
+    def aux(asig, pend, doms): #asig es un diccionario con las variables ya asignadas y el valor, pend es una lista con las variables que no se han asignada, y doms es un diccionario con los dominios de todas las variables
+        if dominio_vacio(doms):
+            return None
+        elif not pend:
+            return asig
+        else:
+            x = MRV(pend, doms)
+            dx = doms[x]
+            pend.remove(x)
+            for vx in dx:
+                asig[x] = vx
+                ndoms = doms.copy()
+                ndoms[x] = [vx]
+                AC3(psr,ndoms)
+                resultado = aux(asig,pend.copy(),ndoms)
+                if resultado is not None:
+                    return resultado
+        return None
+
+    return aux({}, psr.variables.copy(), psr.dominios)
 
 
 
