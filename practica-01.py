@@ -308,7 +308,9 @@ def MRV(pend,doms):
 ## variable, tomarlos en el orden en el que aparecen en la lista de
 ## valores del dominio.
 
-
+def psr_backtracking_AC3_MRV(psr):
+    def dominio_vacio(doms):
+        any(dx for dx in doms.values())
 
 
 
