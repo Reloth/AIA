@@ -155,7 +155,7 @@ class Nim(juego): #juego es la calse padre
     def str_movimiento(self, mov):
         return "Quitar {}".format(mov)
 
-    def f_evaluacion(self, estado, jugador): #siempre desde el punto de vista de MAX
+    def f_evaluacion(self, estado, turno): #siempre desde el punto de vista de MAX
         if estado%4 == 1:
             if turno == "MAX":
                 return self.minimo_valor
@@ -170,16 +170,6 @@ class Nim(juego): #juego es la calse padre
     
 def nim(n):
     return Nim(n)
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -274,10 +264,49 @@ def nim(n):
 ## Jugador : MIN
 ## El humano ha ganado
 
+def minimax(juego, estado, cota):
+    max_val = -float("inf")
+    movimiento_elegido = None
+    nuevo_estado = None
+
+    for m in juego.movimientos(estado):
+        sucesor = juego.aplica(m,estado)
+        valor_sucesor = valor_minimax(juego, sucesor, "MIN", cota-1)
+        if max_val < valor_sucesor:
+            max_val = valor_sucesor
+            movimiento_elegido = m
+            nuevo_estado = sucesor
+    return (movimiento_elegido,nuevo_estado)
 
 
+def valor_minimax(juego, estado, turno, cota):
+    if(cota==0 or juego.es_estado_final(estado)):
+        return juego.f_evaluacion(estado, turno)
+    else:
+        movs = juego.movimientos(estado)
+        if turno == "MAX":
+            return maximizador(juego, estado, movs, cota-1)
+        else:
+            return minimizador(juego, estado, movs, cota-1)
 
 
+def maximizador(juego, estado, movs, cota):
+    max_val = -float("inf")
+    for m in movs:
+        sucesor = juego.aplica(m,estado)
+        valor_sucesor = valor_minimax(juego, sucesor, "MIN", cota)
+        if max_val < valor_sucesor:
+            max_val = valor_sucesor
+    return max_val
+
+def minimizador(juego, estado, movs, cota):
+    min_val = float("inf")
+    for m in movs:
+        sucesor = juego.aplica(m,estado)
+        valor_sucesor = valor_minimax(juego, sucesor, "MAX", cota)
+        if min_val > valor_sucesor:
+            min_val = valor_sucesor
+    return min_val
 
 
         
@@ -294,3 +323,49 @@ def nim(n):
 ##   jugar 'MAX'. El movimiento con mejor valor minimax de entre todas
 ##   las opciones disponibles.
 
+def alfa_beta(juego, estado, cota):
+    alfa = -float("inf")
+    beta = juego.maximo_valor
+    movimiento_elegido = None
+    nuevo_estado = None
+
+    for m in juego.movimientos(estado):
+        sucesor = juego.aplica(m,estado)
+        valor_sucesor = valor_alfabeta(juego, sucesor, "MIN", cota-1, alfa, beta)
+        if alfa < valor_sucesor:
+            alfa = valor_sucesor
+            movimiento_elegido = m
+            nuevo_estado = sucesor
+            if alfa >= beta:
+                break
+    return (movimiento_elegido,nuevo_estado)
+
+def valor_alfabeta(juego, estado, turno, cota, alfa, beta):
+    if(cota==0 or juego.es_estado_final(estado)):
+        return juego.f_evaluacion(estado, turno)
+    else:
+        movs = juego.movimientos(estado)
+        if turno == "MAX":
+            return maximizador_alfabeta(juego, estado, movs, cota-1, alfa, beta)
+        else:
+            return minimizador_alfabeta(juego, estado, movs, cota-1, alfa, beta)
+
+def maximizador_alfabeta(juego, estado, movs, cota, alfa, beta):
+    for m in movs:
+        sucesor = juego.aplica(m,estado)
+        valor_sucesor = valor_alfabeta(juego, sucesor, "MIN", cota, alfa, beta)
+        if alfa < valor_sucesor:
+            alfa = valor_sucesor
+            if alfa >= beta:
+                break
+    return alfa
+
+def minimizador_alfabeta(juego, estado, movs, cota, alfa, beta):
+    for m in movs:
+        sucesor = juego.aplica(m,estado)
+        valor_sucesor = valor_alfabeta(juego, sucesor, "MAX", cota, alfa, beta)
+        if beta > valor_sucesor:
+            beta = valor_sucesor
+            if alfa >= beta:
+                break
+    return beta
