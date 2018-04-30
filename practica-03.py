@@ -89,7 +89,30 @@ class MDP(object):
 
 # ------------------------------------------------------------------
 
+class Rica_y_Conocida(MDP):
+    def __init__(self, descuento=0.9):
+        self.Rdict = {"RC":10,"RD":10,"PC":0,"PD":0}
+        self.Tdict = {("RC","No publicidad"):[("RC",0.5),("RD",0.5)],
+                      ("RC","Gastar en publicidad"):[("PC",1)],
+                      ("RD","No publicidad"):[("RD",0.5),("PD",0.5)],
+                      ("RD","Gastar en publicidad"):[("PD",0.5),("PC",0.5)],
+                      ("PC","No publicidad"):[("PD",0.5),("RC",0.5)],
+                      ("PC","Gastar en publicidad"):[("PC",1)],
+                      ("PD","No publicidad"):[("PD",1)],
+                      ("PD","Gastar en publicidad"):[("PD",0.5),("PC",0.5)]}
 
+        super().__init__(["RC","RD","PC","PD"], descuento)
+
+    def R(self,estado):
+        return self.Rdict[estado]
+
+    def A(self,estado):
+        return ["No publicidad", "Gastar en publicidad"]
+
+    def T(self,estado,accion):
+        return self.Tdict[(estado,accion)]
+    
+        
 
 
 
@@ -135,7 +158,21 @@ class MDP(object):
 
 # -----------------------------------------------------------------------
 
+def muestreo(distr):
+    r = random.random()
+    acum = 0
+    for e,p  in distr:
+        acum += p
+        if acum > r:
+            return e
 
+def genera_secuencia_estados(mdp,pi,estado,n):
+    actual = estado
+    seq = [actual]
+    for _ in range(n-1):
+        actual = muestreo(mdp.T(actual,pi[actual]))
+        seg.append(actual)
+    return seq
 
 
 
@@ -165,7 +202,8 @@ class MDP(object):
 
 # --------------------------------------------------------------------------
 
-
+def valora_secuencia(seq,mdp):
+    return sum(mdp.R(e)*(mdp.descuento**n) for n,e in enumerate(seq))
 
 
 #------------------------------------------------------------------------------
@@ -194,8 +232,8 @@ class MDP(object):
 
 # ---------------------------------------------------------------------
 
-
-
+def estima_valor(e,pl,mdp,m,n):
+    return sum(valora_secuencia(genera_secuencia_estados(mdp,pl,e,m),mdp) for _ in range(n))/n
 
 
 #------------------------------------------------------------------------------
@@ -245,8 +283,14 @@ class MDP(object):
 
 #----------------------------------------------------------------------------
 
-
-
+def valoración_respecto_política(pl,mdp,k):
+    R, T, gamma = mdp.R, mdp.T, mdp.descuento
+    V = {e:0 for e in mdp.estados}
+    for _ in range(k):
+        V1 = V.copy()
+        for s in mdp.estados:
+            V[s] = R(s) + gamma * (sum([p * V1[s1] for (s1,p) in T(s, pl[s])]))
+    return V
 
 
 
