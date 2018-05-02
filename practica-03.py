@@ -283,7 +283,7 @@ def estima_valor(e,pl,mdp,m,n):
 
 #----------------------------------------------------------------------------
 
-def valoración_respecto_política(pl,mdp,k):
+def valoracion_respecto_politica(pl,mdp,k):
     R, T, gamma = mdp.R, mdp.T, mdp.descuento
     V = {e:0 for e in mdp.estados}
     for _ in range(k):
@@ -291,9 +291,6 @@ def valoración_respecto_política(pl,mdp,k):
         for s in mdp.estados:
             V[s] = R(s) + gamma * (sum([p * V1[s1] for (s1,p) in T(s, pl[s])]))
     return V
-
-
-
 
 
 
@@ -324,3 +321,28 @@ def valoración_respecto_política(pl,mdp,k):
 # valoraciones obtenidas.  
 # --------------------------------------------------------------------------
 
+def iteracion_de_politicas(mdp, k):
+    pi = {s:random.choice(mdp.A(s)) for s in mdp.estados}
+    while True:
+        Vpi = valoracion_respecto_politica(pi,mdp,k)
+        actualizado = False
+        for s in mdp.estados:
+            acc = argmax(mdp.A(s),lambda a: valoracion_esperada(a,s,Vpi,mdp)) # Acción mejor en s respecto de Vpi
+            if acc != pi[s]:
+                pi[s] = acc
+                actualizado = True
+        if not actualizado:
+            return pi,Vpi
+
+def valoracion_esperada(acc,estado,Vpi,mdp):
+    return sum((p*Vpi[sprima] for (sprima,p) in mdp.T(estado,acc)))
+
+def argmax(seq, f):
+    max = float("-inf")
+    amax = None
+    for x in seq:
+        fx = f(x)
+        if fx > max:
+            max = fx
+            amax = x
+    return amax
