@@ -49,6 +49,8 @@
 # Lo que sigue es la definición de una clase que con la que representar
 # modelos ocultos de Markov:
 
+import copy,random
+
 class HMM(object):
     """Clase para definir un modelo oculto de Markov"""
 
@@ -165,11 +167,32 @@ ej2_hmm=HMM(["l","no l"],
 # {'l': 0.19066793972352525, 'no l': 0.8093320602764748}
 
 def avance_norm(hmm,seq):
+    aux = 0
+    alpha = []
+
+    for o in seq:
+        if aux == 0:
+            for s in hmm.eOcultos:
+                alpha = { s:(hmm.b[(s,seq[aux])]) * hmm.pi[s]  for s in hmm.eOcultos }
+            normDiv = sum([alpha[x] for x in hmm.eOcultos])
+            copyAlpha = copy.deepcopy(alpha)
+            for a in hmm.eOcultos:
+                alpha[a] = copyAlpha[a] / normDiv
 
 
+        else:
+            copyAlpha = copy.deepcopy(alpha)
+            alpha = { s:(hmm.b[(s,seq[aux])]) * sum([ (hmm.a[(x,s)] * copyAlpha[x]) for x in hmm.eOcultos]) for s in hmm.eOcultos }
+        normDiv = sum([alpha[x] for x in hmm.eOcultos])
+        copyAlpha = copy.deepcopy(alpha)
+        for a in hmm.eOcultos:
+            alpha[a] = copyAlpha[a] / normDiv
+        aux += 1
 
+    return alpha
 
-
+#print(avance_norm(ej1_hmm,[3,1,3,2]))
+#print(avance_norm(ej2_hmm,["u","u","no u"]))
 
 
 
@@ -180,10 +203,36 @@ def avance_norm(hmm,seq):
 # Usar la función anterior para hacer el ejercicio 12 de la relación de
 # problemas
 
+ej12_hmm=HMM(["DormidoBien","DormidoMal"],
+             [0.6,0.4],
+             [[0.8,0.2],[0.2,0.8]],
+             [("SeDuerme","OjosRojos"),("SeDuerme","OjosNormales"),("NoSeDuerme","OjosRojos"),("NoSeDuerme","OjosNormales")],
+             [[0.02,0.08,0.18,0.72],[0.21,0.09,0.49,0.21]])
 
+# Dia uno
+# print(avance_norm(ej12_hmm,[("NoSeDuerme","OjosNormales")]))
+#{'DormidoBien': 0.8372093023255813, 'DormidoMal': 0.16279069767441862}
 
+# Dia dos
+# print(avance_norm(ej12_hmm,[("NoSeDuerme","OjosNormales"),("NoSeDuerme","OjosRojos")]))
+#{'DormidoBien': 0.46429791595490255, 'DormidoMal': 0.5357020840450973}
 
+# Dia tres
+# print(avance_norm(ej12_hmm,[("NoSeDuerme","OjosNormales"),("NoSeDuerme","OjosRojos"),("SeDuerme","OjosRojos")]))
+#{'DormidoBien': 0.08038609196655552, 'DormidoMal': 0.9196139080334444}
 
+# print(avance_norm(ej12_hmm,[("SeDuerme","OjosRojos")]))
+# print(avance_norm(ej12_hmm,[("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos")]))
+# print(avance_norm(ej12_hmm,[("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos")]))
+# print(avance_norm(ej12_hmm,[("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos")]))
+# print(avance_norm(ej12_hmm,[("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos"),("SeDuerme","OjosRojos")]))
+
+# Resultados convergencia:
+#{'DormidoBien': 0.125, 'DormidoMal': 0.875}
+#{'DormidoBien': 0.03486529318541996, 'DormidoMal': 0.96513470681458}
+#{'DormidoBien': 0.026295932996302725, 'DormidoMal': 0.9737040670036973}
+#{'DormidoBien': 0.02553546386330486, 'DormidoMal': 0.974464536136695}
+#{'DormidoBien': 0.025468402193255378, 'DormidoMal': 0.9745315978067446}
 
 
 
@@ -230,7 +279,14 @@ def avance_norm(hmm,seq):
 # -2
 
 def resultado_apuesta(l1,l2):
+    comunes = list(zip(l1,l2))
+    aciertos = sum([1 for x in comunes if x[0]==x[1]])
 
+    return (aciertos*5 - (len(l1)-aciertos))
+
+# print(resultado_apuesta([1,6,5,6,6,2,3,6],[1,4,5,6,6,2,2,6]))
+# print(resultado_apuesta([1,6,5,6,6,2,3,6],[2,1,3,5,6,2,4,1]))
+# print(resultado_apuesta([1,6,5,6,6,2,3,6],[2,1,3,5,6,1,4,1]))
 
 
 
@@ -258,6 +314,11 @@ def resultado_apuesta(l1,l2):
 # Markov, generando el correspondiente objeto de la clase hmm, y asignádolo a
 # una variable de nombre casino_hmm
 
+casino_hmm = HMM(["Trucado","Normal"],
+            [1/3,2/3],
+            [[0.8, 0.2], [0.3,0.7]],
+            [1,2,3,4,5,6],   
+            [[0.1,0.1,0.1,0.1,0.1,0.5],[1/6,1/6,1/6,1/6,1/6,1/6]])
 
 
 
@@ -305,8 +366,20 @@ def resultado_apuesta(l1,l2):
 # [1, 4, 6, 5, 6, 1, 6, 4, 6, 6, 5, 3, 2, 6, 3, 6, 4, 5, 2, 6]]
 
 def muestreo_secuencias(hmm,n):
+    estadoInicial = random.choices(hmm.eOcultos,weights=[hmm.pi[x] for x in hmm.eOcultos],k=1)[0]
+    observacionInicial = random.choices(hmm.eObservables,weights=[hmm.b[(estadoInicial,x)] for x in hmm.eObservables],k=1)[0]
+    cont = 1
+    listaEstados = [estadoInicial]
+    listaObservables = [observacionInicial]
+    while cont < n:
+        copia = copy.deepcopy(listaEstados)
+        listaEstados.append(random.choices(hmm.eOcultos,weights=[hmm.a[(copia[-1],x)] for x in hmm.eOcultos],k=1)[0])
+        listaObservables.append(random.choices(hmm.eObservables,weights=[hmm.b[(listaEstados[-1],x)] for x in hmm.eObservables],k=1)[0])
+        cont += 1
 
+    return [listaEstados,listaObservables]
 
+# print(muestreo_secuencias(casino_hmm,20))
 
 
 
@@ -379,25 +452,57 @@ def muestreo_secuencias(hmm,n):
 # 34
     
 def estrategia_1(l):
-
-
+    return random.choices([1,2,3,4,5,6],weights=[1/6,1/6,1/6,1/6,1/6,1/6],k=len(l))
 
 
 def estrategia_2(l):
+    hmmE2 = HMM(["Trucado","Normal"],
+            [1/3,2/3],
+            [[0.8, 0.2], [0.3,0.7]],
+            [1,2,3,4,5,6],   
+            [[0.1,0.1,0.1,0.1,0.1,0.5],[1/6,1/6,1/6,1/6,1/6,1/6]])
+
+    secuenciaApuestas = estrategia_1([0])
+    n = len(l) -1
+
+    while n > 0:
+        n -= 1
+        probabilidadTipos = avance_norm(hmmE2,secuenciaApuestas)
+        # print(probabilidadTipos)
+        dadoMasProbable = max(probabilidadTipos.keys(), key=(lambda k: probabilidadTipos[k]))
+        # print(dadoMasProbable)
+        if dadoMasProbable == "Trucado":
+            secuenciaApuestas.append(6)
+        else:
+            secuenciaApuestas.append(estrategia_1([0])[0])
+
+
+    return secuenciaApuestas
 
 
 
+
+
+
+# l = muestreo_secuencias(casino_hmm,20)[1]
+# print(l)
+# est1 = estrategia_1(l)
+# print(est1)
+# print(resultado_apuesta(est1,l))
+# est2 = estrategia_2(l)
+# print(est2)
+# print(resultado_apuesta(est2,l))
             
 #---------------------------------------------------------------------
 # EJERCICIO 7
 #---------------------------------------------------------------------
 
 # Definir una función compara_estrategias(n), que implementa lo que 
-#se ha hecho paso a paso en el ejemplo anterior    
+# se ha hecho paso a paso en el ejemplo anterior    
 
 # * En primer lugar, genera una secuencia de n tiradas, usando la
 #   función de simulación que se pide en el ejercicio 5, y tomando la
-#    secuencia de resultados que han salido (y desechando la secuncia de 
+#    secuencia de resultados que han salido (y desechando la secuencia de 
 #    estados ocultos).
 # * A continuación, imprime por pantalla una comparativa sobre lo que,
 #   para esa secuencia generada, se hubiera ganado o perdido si se usa
@@ -406,5 +511,72 @@ def estrategia_2(l):
 # resultados que se obtienen.
      
 def compara_estrategias(n):
+    hmmCE = HMM(["Trucado","Normal"],
+            [1/3,2/3],
+            [[0.8, 0.2], [0.3,0.7]],
+            [1,2,3,4,5,6],   
+            [[0.1,0.1,0.1,0.1,0.1,0.5],[1/6,1/6,1/6,1/6,1/6,1/6]])
 
+    tiradas = muestreo_secuencias(hmmCE,n)[1]
+    print("Utilizar la estrategia 2 frente a la 1 nos daría un resultado de " + 
+            str(resultado_apuesta(estrategia_2(tiradas),tiradas) - resultado_apuesta(estrategia_1(tiradas),tiradas)) + 
+            " euros.")
 
+    
+# compara_estrategias(100)
+
+## Batería de 50 ejecuciones
+
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 132 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 132 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 150 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 90 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 138 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 156 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 90 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 78 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 84 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 96 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 108 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 90 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 96 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 186 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 78 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 132 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 108 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 132 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 96 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 54 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 48 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 168 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 66 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 108 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 114 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 60 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 96 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 114 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 168 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 150 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 0 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 174 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 168 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 132 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 168 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 96 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 72 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 138 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 126 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 114 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 78 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 108 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 138 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 54 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 150 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 102 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 126 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 102 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 24 euros.
+# Utilizar la estrategia 2 frente a la 1 nos daría un resultado de 126 euros.
+
+## Con estos resultados podemos comprobar que utilizando la estrategia 2, es bastante difícil perder dinero, ya que en el peor de los resultados obtuvimos
+## un beneficio final de 0, pero en ninguna ejecución ha sido negativo (para 100 tiradas, en casos de menos tiradas si se dan resultados negativos).

@@ -171,7 +171,7 @@ def genera_secuencia_estados(mdp,pi,estado,n):
     seq = [actual]
     for _ in range(n-1):
         actual = muestreo(mdp.T(actual,pi[actual]))
-        seg.append(actual)
+        seq.append(actual)
     return seq
 
 
