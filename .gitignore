@@ -2,3 +2,12 @@ clasificadores_lineales - salva primera parte.py
 clasificadores_lineales - con graph hecho.py
 iris.py
 votos.py
+cancer.py
+validationlabels
+testimages
+testlabels
+trainingimages
+traininglabels
+validationimages
+__pycache__/iris.cpython-36.pyc
+__pycache__/votos.cpython-36.pyc
